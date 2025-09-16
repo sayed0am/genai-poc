@@ -1,0 +1,9 @@
+llama-index-core 
+llama-index-readers-docling 
+llama-index-node-parser-docling 
+llama-index-readers-file 
+llama-index-embeddings-ollama 
+llama-index-llms-ollama
+llama-index-retrievers-bm25
+stemmer
+llama-index-vector-stores-postgres

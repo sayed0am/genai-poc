@@ -1,0 +1,15 @@
+services:
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "3000:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      restart_policy:
+        condition: always
+    volumes:
+      - ./webui-data:/app/backend/data
+
+volumes:
+  open-webui:
