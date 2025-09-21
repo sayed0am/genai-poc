@@ -3,3 +3,5 @@ postgres
 webui-data
 docs
 .DS_Store
+indexer
+
