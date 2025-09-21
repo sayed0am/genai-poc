@@ -4,4 +4,5 @@ webui-data
 docs
 .DS_Store
 indexer
-
+*.pyc
+src/config/agents copy.yaml

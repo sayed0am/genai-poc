@@ -11,9 +11,9 @@ from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.postgres import PGVectorStore
-from llama_index.core.response_synthesizers import CompactAndRefine
+# from llama_index.core.response_synthesizers import CompactAndRefine
 from llama_index.core.retrievers import QueryFusionRetriever
-from llama_index.core.query_engine import RetrieverQueryEngine
+# from llama_index.core.query_engine import RetrieverQueryEngine
 
 from sqlalchemy import make_url
 
@@ -118,7 +118,7 @@ def create_retriever(index, top_k=DEFAULT_TOP_K, num_queries=DEFAULT_NUM_QUERIES
         similarity_top_k=top_k,
         num_queries=num_queries,
         mode="relative_score",
-        use_async=False,
+        use_async=True,
     )
     
     print("Retriever ready")

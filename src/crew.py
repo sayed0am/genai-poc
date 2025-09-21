@@ -6,7 +6,16 @@ from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai import LLM
 document_tool = DocumentRetrievalTool()
-GEN_MODEL = LLM(model="ollama/qwen3:4b-instruct-2507-q8_0", temperature=0.7, timeout=160.0 , keep_alive="10m", max_tokens=2048, max_completion_tokens=1024)
+# GEN_MODEL = LLM(model="ollama/qwen3:4b-instruct-2507-q8_0", timeout=300,
+#     verbose=True,temperature=0.7, keep_alive="10m", max_tokens=2048, max_completion_tokens=1024, top_p=0.8)
+
+OPENROUTER_API_KEY="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"
+GEN_MODEL = LLM(
+    model="openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+    base_url="https://openrouter.ai/api/v1",
+    api_key=OPENROUTER_API_KEY
+)
+
 @CrewBase
 class RagCrew():
     """RagCrew crew"""
@@ -21,7 +30,9 @@ class RagCrew():
             config=self.agents_config['document_researcher'], # type: ignore[index]
             verbose=True,
             tools=[document_tool],
-            max_iter=3
+            respect_context_window=True,
+            max_iter=1,
+            allow_delegation=False
         )
 
     @agent
@@ -30,7 +41,8 @@ class RagCrew():
             llm=GEN_MODEL,  # Use default LLM from config
             config=self.agents_config['answer_synthesizer'], # type: ignore[index]
             verbose=True,
-            max_iter=3
+            respect_context_window=True,
+            max_iter=1
         )
 
     @task
@@ -43,6 +55,7 @@ class RagCrew():
     def answer_task(self) -> Task:
         return Task(
             config=self.tasks_config['answer_task'], # type: ignore[index]
+            markdown=True
             )
 
     @crew
