@@ -2,6 +2,10 @@
 """
 Simple interface for querying processed documents using the vector index.
 """
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
+from typing import Type
+
 
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
@@ -196,17 +200,65 @@ def get_all_contextualized_chunks(retriever, question, max_chunks=10):
 
 
 # ============================================================================
-def document_retrieval_tool(query: str, max_chunks=5) -> str:    
-    # Load index and create query engine
-    index = load_existing_index()
-    retriever = create_retriever(index)
+# def document_retrieval_tool(query: str, max_chunks=5) -> str:    
+#     # Load index and create query engine
+#     index = load_existing_index()
+#     retriever = create_retriever(index)
     
-    context_chunks = get_all_contextualized_chunks(retriever, query.strip(), max_chunks=max_chunks)
+#     context_chunks = get_all_contextualized_chunks(retriever, query.strip(), max_chunks=max_chunks)
 
-    seperator = "\n\n"+"--"*50+"\n\n"
-    context = seperator.join(context_chunks)
+#     seperator = "\n\n"+"--"*50+"\n\n"
+#     context = seperator.join(context_chunks)
 
-    return context
+#     return context
+
+
+class DocumentRetrievalInput(BaseModel):
+    """Input schema for DocumentRetrievalTool."""
+    query: str = Field(..., description="The search query to find relevant document chunks")
+    max_chunks: int = Field(default=5, description="Maximum number of document chunks to retrieve (default: 5)")
+
+class DocumentRetrievalTool(BaseTool):
+    name: str = "Document Retrieval Tool"
+    description: str = """
+    Searches through a vector database of processed documents to find relevant chunks based on a query.
+    Uses hybrid search (semantic + keyword) to retrieve the most relevant document chunks.
+    Returns contextualized chunks with source information, page numbers, and content.
+    """
+    args_schema: Type[BaseModel] = DocumentRetrievalInput
     
-print(document_retrieval_tool("What is the maximum lump sum financial reward, in Dirhams, that a military retiree in the 'First' main grade can receive upon appointment?", max_chunks=3)
-)
+    def _run(self, query: str, max_chunks: int = 5) -> str:
+        """
+        Execute the document retrieval.
+        
+        Args:
+            query: The search query
+            max_chunks: Maximum number of chunks to retrieve
+            
+        Returns:
+            str: Formatted document chunks with context
+        """
+        try:
+            # Load index and create query engine
+            index = load_existing_index()
+            retriever = create_retriever(index)
+            
+            # Get contextualized chunks
+            context_chunks = get_all_contextualized_chunks(
+                retriever, 
+                query.strip(), 
+                max_chunks=max_chunks
+            )
+            
+            # Join chunks with separator
+            separator = "\n\n" + "--" * 50 + "\n\n"
+            context = separator.join(context_chunks)
+            
+            return context
+            
+        except Exception as e:
+            return f"Error retrieving documents: {str(e)}"
+        
+
+# print(document_retrieval_tool("What is the maximum lump sum financial reward, in Dirhams, that a military retiree in the 'First' main grade can receive upon appointment?", max_chunks=3)
+# )

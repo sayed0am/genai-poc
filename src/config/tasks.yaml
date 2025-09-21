@@ -1,0 +1,31 @@
+# src/latest_ai_development/config/tasks.yaml
+research_task:
+  description: >
+    Use the document_retrieval_tool to systematically search for policy information related to: {query}
+    Search through policy documents, regulations, guidelines, and procedural documentation to find
+    all relevant information that addresses the query. Extract key provisions, requirements, 
+    specific details, and any related policy implications.
+  expected_output: >
+    A comprehensive collection of relevant policy information organized by document source,
+    including specific article/section references, key provisions, requirements, and any
+    related policy details that directly address the query.
+  agent: document_researcher
+
+answer_task:
+  description: >
+    Analyze the provided document context and formulate a comprehensive and accurate answer to the user's original question: {query}.
+  expected_output: >
+    A professional, well-structured response that directly answers the user's question. Format the response naturally and appropriately based on the content:
+
+    Guidelines for response formatting:
+    - Start with a clear, direct answer to the question
+    - Provide supporting details, explanations, or calculations only when relevant
+    - Include specific references to policy articles, sections, or documents when citing sources
+    - Use natural language flow rather than rigid templates
+    - Adapt the structure to fit the content (simple answers for simple questions, detailed breakdowns for complex ones)
+    - Use proper formatting (bullet points, numbering, or paragraphs) as appropriate for the content
+    - Ensure professional tone and clarity
+    - Include precise figures, timeframes, and regulatory references where applicable
+
+    The response should feel conversational yet authoritative, avoiding repetitive headers unless the content genuinely requires structured breakdown.
+  agent: answer_synthesizer
