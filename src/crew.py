@@ -9,9 +9,8 @@ document_tool = DocumentRetrievalTool()
 # GEN_MODEL = LLM(model="ollama/qwen3:4b-instruct-2507-q8_0", timeout=300,
 #     verbose=True,temperature=0.7, keep_alive="10m", max_tokens=2048, max_completion_tokens=1024, top_p=0.8)
 
-OPENROUTER_API_KEY="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"
 GEN_MODEL = LLM(
-    model="openrouter/qwen/qwen3-30b-a3b-instruct-2507",
+    model="openrouter/z-ai/glm-4.5",
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY
 )
@@ -42,7 +41,7 @@ class RagCrew():
             config=self.agents_config['answer_synthesizer'], # type: ignore[index]
             verbose=True,
             respect_context_window=True,
-            max_iter=1
+            max_iter=3
         )
 
     @task

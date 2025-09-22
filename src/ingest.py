@@ -630,5 +630,5 @@ if __name__ == "__main__":
     # saved_files = process_and_save_documents()
     
     # Run only Phase 2 (loading and indexing from directory)
-    index = load_and_index_nodes("../processed_docs")
+    index = load_and_index_nodes("../data/processed_docs")
     

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List, Dict
 import uvicorn
 from dotenv import load_dotenv
+from crew import RagCrew
 
 # --- Arize Phoenix Tracing Setup ---
 # This block configures the tracer to send data to your local Phoenix instance.
@@ -37,7 +38,7 @@ project_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.insert(0, project_root)
 
 # Import your existing crew creation function
-from src.rag_system.crew import create_rag_crew
+# from src.rag_system.crew import create_rag_crew
 
 # Load environment variables
 load_dotenv()
@@ -73,15 +74,15 @@ def list_models():
         "object": "list",
         "data": [
             {
-                "id": "crew-ai-rag",
+                "id": "policy-crew",
                 "object": "model", 
-                "created": 1677652288,
-                "owned_by": "crew-ai-rag",
+                "created": 1758516814,
+                "owned_by": "policy-crew",
                 "permission": [],
-                "root": "crew-ai-rag",
+                "root": "policy-crew",
                 "parent": None,
-                "max_tokens": 131072,        # Updated to match gemma3:4b max tokens
-                "context_length": 131072     # Updated to match gemma3:4b context length
+                "max_tokens": 262144,
+                "context_length": 262144     
             }
         ]
     }
@@ -99,15 +100,16 @@ def chat_completions(request: ChatCompletionRequest):
 
     print(f"Received query for API: {user_message}")
 
-    # Kick off the CrewAI crew with the user's query
-    rag_crew = create_rag_crew(user_message)
-    result = rag_crew.kickoff()
-    
+    # # Kick off the CrewAI crew with the user's query
+    # rag_crew = create_rag_crew(user_message)
+    # result = rag_crew.kickoff()
+    inputs = {'query': user_message}
+    result = RagCrew().crew().kickoff(inputs=inputs)
     # Format the response to be compatible with the OpenAI API standard
     response = {
-        "id": "chatcmpl-123", # Dummy ID
+        "id": "policyl-123", # Dummy ID
         "object": "chat.completion",
-        "created": 1677652288, # Dummy timestamp
+        "created": 1758516814, # Dummy timestamp
         "model": request.model,
         "choices": [{
             "index": 0,

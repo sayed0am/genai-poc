@@ -8,7 +8,7 @@ def run():
     Run the crew.
     """
     inputs = {
-    'query': "What is the maximum lump sum financial reward, in Dirhams, that a military retiree in the 'First' main grade can receive upon appointment?"
+    'query': "For a non-citizen employee with 12 years of service, how is their end-of-service gratuity calculated?"
     }
     result = RagCrew().crew().kickoff(inputs=inputs)
 

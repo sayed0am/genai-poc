@@ -6,6 +6,7 @@ from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from typing import Type
 
+from crewai.tools import tool
 
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
@@ -30,8 +31,8 @@ CONNECTION_STRING = "postgresql://postgres:password@localhost:5432"
 DB_NAME = "vector_db"
 
 # Query configuration
-DEFAULT_TOP_K = 3
-DEFAULT_NUM_QUERIES = 1  # Set to 1 to disable query generation, increase for query expansion
+DEFAULT_TOP_K = 7
+DEFAULT_NUM_QUERIES = 1
 
 # ============================================================================
 # INDEX LOADING
@@ -118,7 +119,7 @@ def create_retriever(index, top_k=DEFAULT_TOP_K, num_queries=DEFAULT_NUM_QUERIES
         similarity_top_k=top_k,
         num_queries=num_queries,
         mode="relative_score",
-        use_async=True,
+        use_async=False,
     )
     
     print("Retriever ready")
@@ -217,6 +218,7 @@ class DocumentRetrievalInput(BaseModel):
     """Input schema for DocumentRetrievalTool."""
     query: str = Field(..., description="The search query to find relevant document chunks")
     max_chunks: int = Field(default=5, description="Maximum number of document chunks to retrieve (default: 5)")
+
 
 class DocumentRetrievalTool(BaseTool):
     name: str = "Document Retrieval Tool"

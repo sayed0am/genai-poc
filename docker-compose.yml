@@ -1,4 +1,16 @@
 services:
+  db:
+    image: pgvector/pgvector:0.8.1-pg17 # PostgreSQL with pgvector support
+    container_name: pgvector-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: rag
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data/pgdata:/var/lib/postgresql/data
+      - ./data/postgres/schema.sql:/docker-entrypoint-initdb.d/schema.sql
   openwebui:
     image: ghcr.io/open-webui/open-webui:main
     ports:
@@ -9,7 +21,9 @@ services:
       restart_policy:
         condition: always
     volumes:
-      - ./webui-data:/app/backend/data
+      - ./data/webui-data:/app/backend/data
+
 
 volumes:
+  pgdata:
   open-webui:
