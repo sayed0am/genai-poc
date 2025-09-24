@@ -1,14 +1,13 @@
 # src/latest_ai_development/config/tasks.yaml
-research_task:
+retrieve_document_chunks:
   description: >
-    Use the document_retrieval_tool to systematically search for policy information related to: {query}
-    Search through policy documents, regulations, guidelines, and procedural documentation to find
-    all relevant information that addresses the query. Extract key provisions, requirements, 
-    specific details, and any related policy implications.
+      Use the document_retrieval_tool to find and return relevant document chunks for the user query: "{query}".
+      Simply pass the user query to the document_retrieval_tool and return the formatted chunks as provided by the tool.
+      The tool already handles formatting and returns the chunks in the appropriate structure.
   expected_output: >
-    A comprehensive collection of relevant policy information organized by document source,
-    including specific article/section references, key provisions, requirements, and any
-    related policy details that directly address the query.
+      Return the formatted document chunks exactly as provided by the document_retrieval_tool.
+      The tool handles all formatting and metadata inclusion.
+      if no relevant documents are found, return an empty list.
   agent: document_researcher
 
 answer_task:

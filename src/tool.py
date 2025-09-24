@@ -199,19 +199,23 @@ def get_all_contextualized_chunks(retriever, question, max_chunks=10):
     
     return contextualized_chunks
 
-
+from crewai.tools import tool
 # ============================================================================
-# def document_retrieval_tool(query: str, max_chunks=5) -> str:    
-#     # Load index and create query engine
-#     index = load_existing_index()
-#     retriever = create_retriever(index)
+@tool("Document Retrieval Tool")
+def document_retrieval_tool(query: str, max_chunks=5) -> str:    
+    """Retrieves relevant context from a collection of policy and standards documents. 
+    Use this tool to search for information in policy documents, manuals, and standards."""
+
+    # Load index and create query engine
+    index = load_existing_index()
+    retriever = create_retriever(index)
     
-#     context_chunks = get_all_contextualized_chunks(retriever, query.strip(), max_chunks=max_chunks)
+    context_chunks = get_all_contextualized_chunks(retriever, query.strip(), max_chunks=max_chunks)
 
-#     seperator = "\n\n"+"--"*50+"\n\n"
-#     context = seperator.join(context_chunks)
+    seperator = "\n\n"+"--"*50+"\n\n"
+    context = seperator.join(context_chunks)
 
-#     return context
+    return context
 
 
 class DocumentRetrievalInput(BaseModel):

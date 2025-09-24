@@ -6,3 +6,4 @@ docs
 indexer
 *.pyc
 src/config/agents copy.yaml
+old
