@@ -10,9 +10,8 @@ document_retrieval_tool = DocumentRetrievalTool(result_as_answer=True)
 # GEN_MODEL = LLM(model="ollama/qwen3:4b-instruct-2507-q8_0", timeout=300,
 #     verbose=True,temperature=0.7, keep_alive="10m", max_tokens=2048, max_completion_tokens=1024, top_p=0.8)
 
-OPENROUTER_API_KEY="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"
 GEN_MODEL = LLM(
-    model="openrouter/z-ai/glm-4.5",
+    model="openrouter/google/gemini-2.0-flash-001",
     base_url="https://openrouter.ai/api/v1",
     api_key=OPENROUTER_API_KEY
 )

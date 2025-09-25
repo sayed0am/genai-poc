@@ -26,16 +26,13 @@ DB_NAME = "vector_db"
 
 # Document processing settings
 MDS_DIR = "../data/processed_docs/md"
-BATCH_SIZE = 10
-MAX_CONTEXT_TOKENS = 1500
 
 # model settings
 # GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, keep_alive=True, context_window=2048)
 GEN_MODEL = OpenRouter(
-    api_key="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",
     max_tokens=4096,
     context_window=500000,
-    model="google/gemini-2.5-flash",
+    model="openai/gpt-4.1-nano",
 )
 
 EMBED_MODEL = OllamaEmbedding(model_name="embeddinggemma:300m-qat-q8_0")
@@ -114,7 +111,7 @@ def create_contextual_nodes(nodes_, whole_document):
         Answer only with the succinct context and nothing else
     """
 
-    for node in nodes_:
+    for idx, node in enumerate(nodes_):
         new_node = copy.deepcopy(node)
         
         # Cache the document in system message - this gets cached once and reused
@@ -138,7 +135,7 @@ def create_contextual_nodes(nodes_, whole_document):
                 ]
             )
         ]
-        
+        print(f"Generating context for chunk {idx+1}/{len(nodes_)}...")
         new_node.metadata["context"] = str(
             GEN_MODEL.chat(
                 messages
@@ -210,7 +207,7 @@ def create_page_aware_nodes(markdown_text: str, filename: str, chunk_size: int =
 
 if __name__ == "__main__":
     print("Setting up database...")
-    setup_database(CONNECTION_STRING, DB_NAME)
+    # setup_database(CONNECTION_STRING, DB_NAME)
     vector_store = create_vector_store(CONNECTION_STRING, DB_NAME)
     print("Database and vector store setup complete.")
 
@@ -221,7 +218,7 @@ if __name__ == "__main__":
     
     all_nodes = []
     
-    for doc in docs:
+    for doc in docs[2:]:
         print(f"Processing {doc.metadata['file_name']}...")
         
         # Create page-aware nodes

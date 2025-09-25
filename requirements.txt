@@ -8,6 +8,8 @@ llama-index-retrievers-bm25
 llama-index-vector-stores-postgres
 crewai
 crewai[tools]
-arize-phoenix
+arize-phoenix==11.36.0
+openinference-instrumentation-crewai
 fastapi
 uvicorn
+ragas

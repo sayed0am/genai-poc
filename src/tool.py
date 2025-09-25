@@ -7,11 +7,12 @@ from pydantic import BaseModel, Field
 from typing import Type
 
 from crewai.tools import tool
-
+from llama_index.llms.openrouter import OpenRouter
 from llama_index.llms.ollama import Ollama
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.postgres import PGVectorStore
+from llama_index.postprocessor.sbert_rerank import SentenceTransformerRerank
 # from llama_index.core.response_synthesizers import CompactAndRefine
 from llama_index.core.retrievers import QueryFusionRetriever
 # from llama_index.core.query_engine import RetrieverQueryEngine
@@ -23,8 +24,13 @@ from sqlalchemy import make_url
 # ============================================================================
 
 # Model configuration (must match the ones used during processing)
-GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, request_timeout=160.0 , keep_alive="10m", context_window=2048)
-EMBED_MODEL = OllamaEmbedding(model_name="nomic-embed-text")
+# GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, request_timeout=160.0 , keep_alive="10m", context_window=2048)
+GEN_MODEL = OpenRouter(
+    max_tokens=4096,
+    context_window=8192,
+    model="openai/gpt-4.1-nano",
+)
+EMBED_MODEL = OllamaEmbedding(model_name="embeddinggemma:300m-qat-q8_0")
 
 # Database configuration (must match the ones used during indexing)
 CONNECTION_STRING = "postgresql://postgres:password@localhost:5432"
@@ -33,6 +39,7 @@ DB_NAME = "vector_db"
 # Query configuration
 DEFAULT_TOP_K = 7
 DEFAULT_NUM_QUERIES = 1
+RERANK_MODEL = SentenceTransformerRerank(top_n=5, model="cross-encoder/ms-marco-MiniLM-L6-v2")
 
 # ============================================================================
 # INDEX LOADING
@@ -176,27 +183,34 @@ def create_contextualized_chunk(node, chunk_index ,include_metadata=True, includ
 def get_all_contextualized_chunks(retriever, question, max_chunks=10):
     """
     Retrieve raw chunks and return them contextualized.
-    
+
     Args:
         retriever: Configured retriever (from query engine)
         question: Question to ask
         max_chunks: Maximum number of chunks to return
-    
+
     Returns:
         list: List of contextualized chunks
     """
+    from llama_index.core.schema import QueryBundle
+
     print(f"🔍 Retrieving contextualized chunks for: {question}")
-    
+
     # Get raw retrieval results
     nodes = retriever.retrieve(question)
-    
-    # Create contextualized chunks
+
+    # Create query bundle for reranking
+    query_bundle = QueryBundle(query_str=question)
+    reranked_nodes = RERANK_MODEL.postprocess_nodes(nodes, query_bundle=query_bundle)
+    print(f"Retrieved {len(reranked_nodes)} chunks, returning top {max_chunks}")
+
+    # Create contextualized chunks using reranked nodes
     contextualized_chunks = []
-    
-    for i, node in enumerate(nodes[:max_chunks]):
+
+    for i, node in enumerate(reranked_nodes[:max_chunks]):
         chunk = create_contextualized_chunk(node, chunk_index=i)
         contextualized_chunks.append(chunk)
-    
+
     return contextualized_chunks
 
 from crewai.tools import tool
@@ -266,5 +280,7 @@ class DocumentRetrievalTool(BaseTool):
             return f"Error retrieving documents: {str(e)}"
         
 
-# print(document_retrieval_tool("What is the maximum lump sum financial reward, in Dirhams, that a military retiree in the 'First' main grade can receive upon appointment?", max_chunks=3)
+# print(document_retrieval_tool("""
+# According to the HR Bylaws, what is the maximum number of days an employee's salary can be deducted in a single year as a disciplinary penalty?
+# """, max_chunks=3)
 # )

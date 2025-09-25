@@ -13,8 +13,10 @@ from crew import RagCrew
 # It should be at the very top of your application's entry point.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Use host.docker.internal for Docker container to access host services
-phoenix_host = os.getenv("PHOENIX_HOST", "host.docker.internal")
+
+# phoenix_host = os.getenv("PHOENIX_HOST", "host.docker.internal")
+phoenix_host = os.getenv("PHOENIX_HOST", "localhost")  # Use localhost if not in Docker
+
 phoenix_endpoint = f"http://{phoenix_host}:6006"
 os.environ["PHOENIX_COLLECTOR_ENDPOINT"] = phoenix_endpoint
 
@@ -94,7 +96,9 @@ def chat_completions(request: ChatCompletionRequest):
     """
     # Extract the last user message as the query
     user_message = next((msg["content"] for msg in reversed(request.messages) if msg["role"] == "user"), None)
-
+    # last 10 user messages
+    user_messages = [msg["content"] for msg in request.messages[:10] if msg["role"] == "user"]
+    logging.info(f"User messages: {user_messages}")
     if not user_message:
         return {"error": "No user message found"}
 
