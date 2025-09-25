@@ -96,19 +96,28 @@ def chat_completions(request: ChatCompletionRequest):
     """
     # Extract the last user message as the query
     user_message = next((msg["content"] for msg in reversed(request.messages) if msg["role"] == "user"), None)
-    # last 10 user messages
-    user_messages = [msg["content"] for msg in request.messages[:10] if msg["role"] == "user"]
+
+    # Get last 10 user messages for conversation history
+    user_messages = [msg["content"] for msg in request.messages[-10:] if msg["role"] == "user"]
     logging.info(f"User messages: {user_messages}")
+
     if not user_message:
         return {"error": "No user message found"}
 
     print(f"Received query for API: {user_message}")
 
-    # # Kick off the CrewAI crew with the user's query
-    # rag_crew = create_rag_crew(user_message)
-    # result = rag_crew.kickoff()
-    inputs = {'query': user_message}
-    result = RagCrew().crew().kickoff(inputs=inputs)
+    # Create conversation history context from user messages
+    conversation_history = "\n".join([f"Q: {msg}" for msg in user_messages[:-1]])  # Exclude current query
+
+    # Create inputs with conversation history
+    inputs = {
+        'query': user_message,
+        'conversation_history': conversation_history if conversation_history else "No previous conversation"
+    }
+
+    # Initialize crew and run
+    rag_crew = RagCrew()
+    result = rag_crew.crew().kickoff(inputs=inputs)
     # Format the response to be compatible with the OpenAI API standard
     response = {
         "id": "policyl-123", # Dummy ID

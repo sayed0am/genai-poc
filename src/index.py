@@ -1,8 +1,5 @@
 from sqlalchemy import make_url
-from datetime import datetime
-import json
-import os
-import re
+
 import psycopg2
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
@@ -10,9 +7,9 @@ from llama_index.llms.openrouter import OpenRouter
 from llama_index.core.llms import ChatMessage
 from llama_index.vector_stores.postgres import PGVectorStore
 from llama_index.core.text_splitter import TokenTextSplitter
-from llama_index.core.node_parser import MarkdownNodeParser
+
 from llama_index.core import SimpleDirectoryReader, VectorStoreIndex, StorageContext
-from llama_index.core.ingestion import IngestionPipeline
+
 from llama_index.core.llms import ChatMessage, TextBlock
 from llama_index.core.schema import Document, TextNode
 from typing import List

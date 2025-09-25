@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-"""
-Simple interface for querying processed documents using the vector index.
-"""
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
 from typing import Type
@@ -18,18 +14,15 @@ from llama_index.core.retrievers import QueryFusionRetriever
 # from llama_index.core.query_engine import RetrieverQueryEngine
 
 from sqlalchemy import make_url
-
+import os
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
 # Model configuration (must match the ones used during processing)
-# GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, request_timeout=160.0 , keep_alive="10m", context_window=2048)
-GEN_MODEL = OpenRouter(
-    max_tokens=4096,
-    context_window=8192,
-    model="openai/gpt-4.1-nano",
-)
+GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, request_timeout=160.0 , keep_alive="10m", context_window=2048)
+
+
 EMBED_MODEL = OllamaEmbedding(model_name="embeddinggemma:300m-qat-q8_0")
 
 # Database configuration (must match the ones used during indexing)
@@ -155,16 +148,11 @@ def create_contextualized_chunk(node, chunk_index ,include_metadata=True, includ
     
     # Extract metadata
     metadata = node.metadata
-    file_name = metadata.get("file_name", "Unknown File")
+    file_name = metadata.get("filename", "Unknown File")
     
-    # Extract page number from nested metadata structure
-    page_no = "Unknown Page"
-    try:
-        if "doc_items" in metadata and len(metadata["doc_items"]) > 0:
-            if "prov" in metadata["doc_items"][0] and len(metadata["doc_items"][0]["prov"]) > 0:
-                page_no = metadata["doc_items"][0]["prov"][0].get("page_no", "Unknown Page")
-    except (KeyError, IndexError, TypeError):
-        pass
+    # Extract page number 
+    page_no = metadata.get("page_number", "Unknown Page")
+
     
     # Extract context
     context = metadata.get("context", "")
