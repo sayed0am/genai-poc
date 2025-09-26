@@ -1,0 +1,49 @@
+retrieve_document_chunks:
+  description: >
+    Analyze the query: "{query}" and conversation history: "{conversation_history}"
+
+    First determine if this query requires document search by checking if it's about:
+    - Policies, procedures, regulations
+    - Specific factual information from documents
+    - Technical procedures or guidelines
+
+    If YES - Use document_retrieval_tool to find relevant information
+    If NO (greeting, small talk, general chat) - Respond directly without using tools
+
+    Examples of queries that DON'T need document search:
+    - "Hello", "Hi", "How are you?"
+    - "Thank you", "Thanks"
+    - "What's the weather like?"
+    - General conversation
+  expected_output: >
+    If document search is needed: Formatted document chunks with source information
+    If no document search needed: Clear statement that no document search is required
+  agent: document_researcher
+
+synthesize_answer:
+  description: >
+    Create a contextual answer for: "{query}"
+    Use conversation history: "{conversation_history}"
+
+    If the document researcher found relevant documents, use that context to answer.
+    If the document researcher indicated no documents were needed (small talk/greetings),
+    provide a friendly, direct response without referencing documents.
+
+    IMPORTANT - Citation Format:
+    When citing information from documents, extract the document name and page number from
+    the chunk format and present as clean citations:
+    - "According to [Document Name, Page X]"
+    - "As stated in [Document Name, Page X]"
+    - REMOVE file extensions (.md, .pdf, etc.) from document names
+
+    From: "[Document Chunk:4, Source: Abu Dhabi Procurement Standards.md, Page: 60]"
+    Use: "According to Abu Dhabi Procurement Standards, Page 60"
+  expected_output: >
+    Natural, conversational response that:
+    - For document-based queries: Uses provided context with clean citations (Document Name without extension, Page X)
+    - For general queries/small talk: Friendly, direct response without document references
+    - Maintains professional yet approachable tone
+    - References conversation history when relevant
+    - Citations are clean and readable, not in chunk format
+    - File extensions (.md, .pdf, etc.) are removed from document names in citations
+  agent: answer_synthesizer
