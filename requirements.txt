@@ -6,10 +6,12 @@ llama-index-embeddings-ollama
 llama-index-llms-ollama
 llama-index-retrievers-bm25
 llama-index-vector-stores-postgres
+llama-index-llms-openrouter
+llama-index-postprocessor-sbert-rerank
+sentence-transformers
 crewai
 crewai[tools]
 arize-phoenix==11.36.0
 openinference-instrumentation-crewai
 fastapi
 uvicorn
-ragas

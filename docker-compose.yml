@@ -1,4 +1,9 @@
 services:
+  rag-api:
+    build: .
+    container_name: rag-api
+    ports:
+      - "8000:8000"
   db:
     image: pgvector/pgvector:0.8.1-pg17 # PostgreSQL with pgvector support
     container_name: pgvector-db

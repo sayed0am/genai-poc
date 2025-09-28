@@ -14,8 +14,8 @@ from crew import RagCrew
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-# phoenix_host = os.getenv("PHOENIX_HOST", "host.docker.internal")
-phoenix_host = os.getenv("PHOENIX_HOST", "localhost")  # Use localhost if not in Docker
+phoenix_host = os.getenv("PHOENIX_HOST", "host.docker.internal")
+# phoenix_host = os.getenv("PHOENIX_HOST", "localhost")  # Use localhost if not in Docker
 
 phoenix_endpoint = f"http://{phoenix_host}:6006"
 os.environ["PHOENIX_COLLECTOR_ENDPOINT"] = phoenix_endpoint
