@@ -4,12 +4,25 @@ from tool import DocumentRetrievalTool
 from crewai.agents.agent_builder.base_agent import BaseAgent
 from typing import List
 from crewai import LLM
+import os
 
 # Initialize document retrieval tool
 document_retrieval_tool = DocumentRetrievalTool(result_as_answer=True)
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+if DOCKER_ENV:
+    uri = "host.docker.internal"
+else:
+    uri = "localhost"
+GEN_MODEL = LLM(api_base=f"http://{uri}:11434", model="ollama/phi4-mini:3.8b-q8_0", timeout=300,
+    verbose=True,temperature=0.0, keep_alive="10m", max_tokens=4096, max_completion_tokens=1024)
 
-GEN_MODEL = LLM(model="ollama/qwen3:4b-instruct-2507-q8_0", timeout=300,
-    verbose=True,temperature=0.7, keep_alive="10m", max_tokens=2048, max_completion_tokens=1024, top_p=0.8)
+# GEN_MODEL = LLM(
+#     model="openrouter/google/gemini-2.5-flash",
+#     base_url="https://openrouter.ai/api/v1",
+#     api_key=os.getenv('OPENROUTER_API_KEY'),
+#     temperature=0.3,
+#     max_tokens=4096
+# )
 
 
 @CrewBase

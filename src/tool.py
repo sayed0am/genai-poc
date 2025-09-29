@@ -11,6 +11,7 @@ from llama_index.vector_stores.postgres import PGVectorStore
 from llama_index.postprocessor.sbert_rerank import SentenceTransformerRerank
 # from llama_index.core.response_synthesizers import CompactAndRefine
 from llama_index.core.retrievers import QueryFusionRetriever
+from llama_index.core.schema import QueryBundle
 # from llama_index.core.query_engine import RetrieverQueryEngine
 
 from sqlalchemy import make_url
@@ -18,19 +19,30 @@ import os
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
-
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+if DOCKER_ENV:
+    uri = "host.docker.internal"
+else:
+    uri = "localhost"
 # Model configuration (must match the ones used during processing)
-GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, request_timeout=160.0 , keep_alive="10m", context_window=2048)
+# GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.1, request_timeout=60.0 , keep_alive="10m", context_window=4096)
+
+GEN_MODEL = OpenRouter(
+   api_key=os.getenv('OPENROUTER_API_KEY', ""),
+   max_tokens=4096,
+   context_window=8192,
+   model="google/gemini-2.5-flash",
+)
 
 
-EMBED_MODEL = OllamaEmbedding(model_name="embeddinggemma:300m-qat-q8_0")
+EMBED_MODEL = OllamaEmbedding(base_url=f"http://{uri}:11434", model_name="embeddinggemma:300m-qat-q8_0")
 
 # Database configuration (must match the ones used during indexing)
-CONNECTION_STRING = "postgresql://postgres:password@localhost:5432"
+CONNECTION_STRING = f"postgresql://postgres:password@{uri}:5432"
 DB_NAME = "vector_db"
 
 # Query configuration
-DEFAULT_TOP_K = 7
+DEFAULT_TOP_K = 5
 DEFAULT_NUM_QUERIES = 1
 RERANK_MODEL = SentenceTransformerRerank(top_n=5, model="cross-encoder/ms-marco-MiniLM-L6-v2")
 
@@ -59,7 +71,7 @@ def load_existing_index(connection_string=CONNECTION_STRING, db_name=DB_NAME):
         password=url.password,
         port=url.port,
         user=url.username,
-        table_name="proc_docs",
+        table_name="csv_proc_docs",
         embed_dim=768,
         hybrid_search=True,
         text_search_config="english",
@@ -103,22 +115,23 @@ def create_retriever(index, top_k=DEFAULT_TOP_K, num_queries=DEFAULT_NUM_QUERIES
     # Create vector retriever (semantic search)
     vector_retriever = index.as_retriever(
         vector_store_query_mode="default",
-        similarity_top_k=5,
+        similarity_top_k=10,
     )
     
     # Create text retriever (keyword search)
     text_retriever = index.as_retriever(
         vector_store_query_mode="sparse",
-        similarity_top_k=5,
+        similarity_top_k=10,
     )
     
     # Create fusion retriever (combines both approaches)
     retriever = QueryFusionRetriever(
         retrievers=[vector_retriever, text_retriever],
+        retriever_weights=[0.9, 0.1],
         llm=GEN_MODEL,
         similarity_top_k=top_k,
         num_queries=num_queries,
-        mode="relative_score",
+        mode="dist_based_score",
         use_async=False,
     )
     
@@ -168,40 +181,27 @@ def create_contextualized_chunk(node, chunk_index ,include_metadata=True, includ
     
     return "\n".join(parts)
 
-def get_all_contextualized_chunks(retriever, question, max_chunks=10):
+def get_all_contextualized_chunks(nodes, max_chunks=10):
     """
     Retrieve raw chunks and return them contextualized.
 
     Args:
-        retriever: Configured retriever (from query engine)
-        question: Question to ask
+        nodes: List of source nodes from retrieval
         max_chunks: Maximum number of chunks to return
 
     Returns:
         list: List of contextualized chunks
     """
-    from llama_index.core.schema import QueryBundle
-
-    print(f"🔍 Retrieving contextualized chunks for: {question}")
-
-    # Get raw retrieval results
-    nodes = retriever.retrieve(question)
-
-    # Create query bundle for reranking
-    query_bundle = QueryBundle(query_str=question)
-    reranked_nodes = RERANK_MODEL.postprocess_nodes(nodes, query_bundle=query_bundle)
-    print(f"Retrieved {len(reranked_nodes)} chunks, returning top {max_chunks}")
 
     # Create contextualized chunks using reranked nodes
     contextualized_chunks = []
 
-    for i, node in enumerate(reranked_nodes[:max_chunks]):
+    for i, node in enumerate(nodes[:max_chunks]):
         chunk = create_contextualized_chunk(node, chunk_index=i)
         contextualized_chunks.append(chunk)
 
     return contextualized_chunks
 
-from crewai.tools import tool
 # ============================================================================
 @tool("Document Retrieval Tool")
 def document_retrieval_tool(query: str, max_chunks=5) -> str:    
@@ -212,13 +212,26 @@ def document_retrieval_tool(query: str, max_chunks=5) -> str:
     index = load_existing_index()
     retriever = create_retriever(index)
     
-    context_chunks = get_all_contextualized_chunks(retriever, query.strip(), max_chunks=max_chunks)
+    print(f"🔍 Retrieving contextualized chunks for: {query}")
+
+    # Get raw retrieval results
+    nodes = retriever.retrieve(query)
+
+    # Create query bundle for reranking
+    query_bundle = QueryBundle(query_str=query)
+    reranked_nodes = RERANK_MODEL.postprocess_nodes(nodes, query_bundle=query_bundle)
+    print(f"Retrieved {len(reranked_nodes)} chunks, returning top {max_chunks}")
+
+    context_chunks = get_all_contextualized_chunks(nodes, max_chunks=max_chunks)
 
     seperator = "\n\n"+"--"*50+"\n\n"
     context = seperator.join(context_chunks)
 
     return context
 
+# qdic = {"question": "According to Annex C, what is the corresponding NIST SP 800-53 control for the UAE IA Standard \"M4.2.1 Screening\"?", "ground_truth": "According to Annex C (Table 8), the corresponding NIST SP 800-53 control for the UAE IA Standard \"M4.2.1 Screening\" is **PS-3**."}
+
+# print(document_retrieval_tool(qdic["question"]))
 
 class DocumentRetrievalInput(BaseModel):
     """Input schema for DocumentRetrievalTool."""

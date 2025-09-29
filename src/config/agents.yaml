@@ -40,7 +40,7 @@ answer_synthesizer:
     REMOVE file extensions (.md, .pdf, etc.) from document names.
 
     Examples:
-    - "According to Abu Dhabi Procurement Standards, Page 60"
-    - "As stated in HR Policy Manual, Page 15"
+    - "According to [Abu Dhabi Procurement Standards, Page 60]"
+    - "As stated in [HR Policy Manual, Page 15]"
   verbose: true
   max_iter: 2

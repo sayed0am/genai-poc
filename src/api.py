@@ -12,9 +12,13 @@ from crew import RagCrew
 # This block configures the tracer to send data to your local Phoenix instance.
 # It should be at the very top of your application's entry point.
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+DOCKER_ENV = os.getenv('DOCKER_ENV', False)
+if DOCKER_ENV:
+    uri = "host.docker.internal"
+else:
+    uri = "localhost"
 
-
-phoenix_host = os.getenv("PHOENIX_HOST", "host.docker.internal")
+phoenix_host = os.getenv("PHOENIX_HOST", uri)
 # phoenix_host = os.getenv("PHOENIX_HOST", "localhost")  # Use localhost if not in Docker
 
 phoenix_endpoint = f"http://{phoenix_host}:6006"

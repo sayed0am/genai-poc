@@ -25,7 +25,7 @@ DB_NAME = "vector_db"
 MDS_DIR = "../data/processed_docs/md"
 
 # model settings
-# GEN_MODEL = Ollama(model="qwen3:4b-instruct-2507-q8_0", temperature=0.7, keep_alive=True, context_window=2048)
+# GEN_MODEL = Ollama(model="phi4-mini:3.8b-q8_0", temperature=0.7, keep_alive=True, context_window=2048)
 GEN_MODEL = OpenRouter(
     max_tokens=4096,
     context_window=500000,
