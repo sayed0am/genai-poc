@@ -35,7 +35,7 @@ GEN_MODEL = OpenRouter(
 )
 
 
-EMBED_MODEL = OllamaEmbedding(base_url=f"http://{uri}:11434", model_name="embeddinggemma:300m-qat-q8_0")
+EMBED_MODEL = OllamaEmbedding(base_url=f"http://{uri}:11434", model_name="nomic-embed-text")
 
 # Database configuration (must match the ones used during indexing)
 CONNECTION_STRING = f"postgresql://postgres:password@{uri}:5432"
@@ -222,14 +222,14 @@ def document_retrieval_tool(query: str, max_chunks=5) -> str:
     reranked_nodes = RERANK_MODEL.postprocess_nodes(nodes, query_bundle=query_bundle)
     print(f"Retrieved {len(reranked_nodes)} chunks, returning top {max_chunks}")
 
-    context_chunks = get_all_contextualized_chunks(nodes, max_chunks=max_chunks)
+    context_chunks = get_all_contextualized_chunks(reranked_nodes, max_chunks=max_chunks)
 
     seperator = "\n\n"+"--"*50+"\n\n"
     context = seperator.join(context_chunks)
 
     return context
 
-# qdic = {"question": "According to Annex C, what is the corresponding NIST SP 800-53 control for the UAE IA Standard \"M4.2.1 Screening\"?", "ground_truth": "According to Annex C (Table 8), the corresponding NIST SP 800-53 control for the UAE IA Standard \"M4.2.1 Screening\" is **PS-3**."}
+# qdic = {"question": "According to Annex C, what is the corresponding NIST SP 800-53 control for the UAE IA Standard M4.2.1 Screening?", "ground_truth": "According to Annex C (Table 8), the corresponding NIST SP 800-53 control for the UAE IA Standard \"M4.2.1 Screening\" is **PS-3**."}
 
 # print(document_retrieval_tool(qdic["question"]))
 
