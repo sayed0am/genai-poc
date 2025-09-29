@@ -215,7 +215,7 @@ if __name__ == "__main__":
     
     all_nodes = []
     
-    for doc in docs[2:]:
+    for doc in docs:
         print(f"Processing {doc.metadata['file_name']}...")
         
         # Create page-aware nodes
